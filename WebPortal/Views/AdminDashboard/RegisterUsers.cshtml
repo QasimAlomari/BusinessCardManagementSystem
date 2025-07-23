@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = "RegisterUsers";
+    Layout = "~/Views/Shared/_LayoutAdminDashboard.cshtml";
+}
+
+<div class="content">
+    <h2 style="color: #2f3542; font-weight: 700; margin-bottom: 20px;">Register Users</h2>
+    <form id="applicationUserForm" method="post">
+        <div class="mb-3">
+            <label for="userName">User Name *</label><br />
+            <input type="text" id="userName" name="userName" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="userEmail">User Email *</label><br />
+            <input type="email" id="userEmail" name="userEmail" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="userPassword">User Password *</label><br />
+            <input type="password" id="userPassword" name="userPassword" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="userRole">Card Role *</label><br />
+            <select id="userRole" name="userRole" required>
+                <option value="">Select Role</option>
+                <option value="1">User</option>
+                <option value="2">Admin</option>
+            </select>
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="btnSaveUser" type="submit">Save</button>
+        </div>
+    </form>
+</div>
+
+<script src="~/jsadmin/registeruserdashboard.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        $("#btnSaveUser").click(function (e) {
+            e.preventDefault();
+            CreateApplicationUser();
+        });
+    });
+</script>

@@ -1,0 +1,276 @@
+﻿@{
+    ViewData["Title"] = "ListUsers";
+    Layout = "~/Views/Shared/_LayoutAdminDashboard.cshtml";
+}
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .content {
+        padding: 20px;
+    }
+</style>
+
+<div class="content">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-icon">
+                <div class="icon-big-user">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+            </div>
+            <div class="col-stats">
+                <p class="card-category">Users Number</p>
+                <h4 class="card-title" id="totalUsersNumberActiveWithDelete">0</h4>
+            </div>
+            <div class="col-icon">
+                <div class="icon-big-user">
+                    <i class="fas fa-toggle-on"></i>
+                </div>
+            </div>
+            <div class="col-stats">
+                <p class="card-category">DeActive Users</p>
+                <h4 class="card-title" id="totalDeActiveUser">0</h4>
+            </div>
+            <div class="col-icon">
+                <div class="icon-big-user">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+            </div>
+            <div class="col-stats">
+                <p class="card-category">Is Deleted Users</p>
+                <h4 class="card-title" id="totalDeletedUserJustDelete">0</h4>
+            </div>
+            <button class="btn-add-user" onclick="location.href='/AdminDashboard/RegisterUsers'">+ Add Application User</button>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <h2 class="titleBox">Application User</h2>
+    <div class="datatable-container">
+        <table id="applicationUserTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 style="color: #2f3542;">Change Password</h2><br />
+        <form id="uploadForm">
+            <!-- Old Password -->
+            <input type="hidden" id="applicationUserId_changePassword" name="applicationUserId" value="" />
+            <div class="input-group">
+                <label for="oldPassword" style="display:block; margin-bottom:5px;">Old Password</label>
+                <input type="password" id="oldPassword" name="oldPassword" placeholder="Enter old password" required />
+            </div>
+
+            <div class="input-group" style="margin-top: 15px;">
+                <label for="newPassword" style="display:block; margin-bottom:5px;">New Password</label>
+                <input type="password" id="newPassword" name="newPassword" placeholder="Enter new password" required />
+            </div>
+
+            <div class="input-group" style="margin-top: 15px;">
+                <label for="confirmPassword" style="display:block; margin-bottom:5px;">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password" required />
+            </div>
+
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-cancel">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button type="submit" id="btnSaveModal" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit User Info Modal -->
+<div id="editUserInfoModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 style="color: #2f3542;">Edit User Information</h2><br />
+        <form id="editUserForm">
+            <input type="hidden" id="applicationUserId_editUser" name="applicationUserId" />
+
+            <div class="input-group">
+                <label for="applicationUserUsername">User Name</label>
+                <input type="text" id="applicationUserUsername" name="applicationUserUsername" required />
+            </div>
+
+            <div class="input-group" style="margin-top: 15px;">
+                <label for="applicationUserEmail">User Email</label>
+                <input type="email" id="applicationUserEmail" name="applicationUserEmail" required />
+            </div>
+
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-cancel">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button type="submit" id="btnEditUserInfo" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        const table = $('#applicationUserTable').DataTable({
+            processing: true,
+            serverSide: true,
+            pageLength: 10,
+            ajax: function (data, callback) {
+                data.columns.forEach(col => {
+                    if (!col.data) col.data = 'applicationUserUsername';
+                });
+                GetApplicationUserList(data, callback);
+            },
+            columns: [
+                {
+                    data: "applicationUserId",
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1 + meta.settings._iDisplayStart;
+                    }
+                },
+                { data: "applicationUserUsername" },
+                { data: "applicationUserEmail" },
+                { data: "applicationUserRole" },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        const eyeIcon = row.isActive
+                            ? `<i class="fas fa-eye text-success"></i>`
+                            : `<i class="fas fa-eye-slash text-danger"></i>`;
+                        const eyeTitle = row.isActive ? "Deactivate" : "Activate";
+                        return `
+                            <div class="actions">
+                                <button class="view-btn" title="${eyeTitle}" data-id="${row.applicationUserId}">
+                                    ${eyeIcon}
+                                </button>
+                                <button class="edit-btn" title="Edit" data-id="${row.applicationUserId}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="softdelete-btn" title="Soft Delete" data-id="${row.applicationUserId}">
+                                    <i class="fa fa-trash-arrow-up"></i>
+                                </button>
+                                <button class="harddelete-btn" title="Hard Delete" data-id="${row.applicationUserId}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                <button class="btn-reset-pass-user" title="resetPass" data-id="${row.applicationUserId}">
+                                    <i class="fa fa-key"></i>
+                                </button>
+                            </div>`;
+                    }
+                }
+            ],
+            language: {
+                processing: `<span class='spinner-border spinner-border-sm text-success'></span> Loading...`,
+                paginate: { previous: "Prev", next: "Next" }
+            }
+        });
+
+        $('#applicationUserTable tbody').on('click', '.view-btn, .softdelete-btn, .harddelete-btn', function () {
+            const table = $('#applicationUserTable').DataTable();
+            const rowData = table.row($(this).closest('tr')).data();
+            const applicationUserId = rowData.applicationUserId;
+
+            if ($(this).hasClass('view-btn')) {
+                ActivateApplicationUser(applicationUserId, rowData.isActive);
+            } else if ($(this).hasClass('softdelete-btn')) {
+                SoftDeleteApplicationUser(applicationUserId);
+            } else if ($(this).hasClass('harddelete-btn')) {
+                HardDeleteApplicationUser(applicationUserId);
+            }
+        });
+
+        $('#applicationUserTable tbody').on('click', '.btn-reset-pass-user', function () {
+            const userId = $(this).data('id');
+            $('#applicationUserId_changePassword').val(userId);
+            $('#changePasswordModal').fadeIn();
+        });
+
+        $('.close-btn, .btn-cancel').click(function () {
+            clearPasswordForm();
+            $('#changePasswordModal').fadeOut();
+            $('#editUserInfoModal').fadeOut();
+        });
+
+        $(window).click(function (event) {
+            if ($(event.target).is('#changePasswordModal')) {
+                clearPasswordForm();
+                $('#changePasswordModal').fadeOut();
+            }
+            if ($(event.target).is('#editUserInfoModal')) {
+                clearUserInfoForm();
+                $('#editUserInfoModal').fadeOut();
+            }
+        });
+
+        $("#btnSaveModal").click(function (e) {
+            e.preventDefault();
+            ResetPasswordApplicationUser();
+        });
+
+        function clearPasswordForm() {
+            $('#applicationUserId_changePassword').val('');
+            $('#oldPassword').val('');
+            $('#newPassword').val('');
+            $('#confirmPassword').val('');
+        }
+
+        ////////////////////////
+        ////////////////////////
+
+        $('#applicationUserTable tbody').on('click', '.edit-btn', function () {
+            const table = $('#applicationUserTable').DataTable();
+            const rowData = table.row($(this).closest('tr')).data();
+
+            $('#applicationUserId_editUser').val(rowData.applicationUserId);
+            $('#applicationUserUsername').val(rowData.applicationUserUsername);
+            $('#applicationUserEmail').val(rowData.applicationUserEmail);
+
+            $('#editUserInfoModal').fadeIn();
+        });
+
+        $('#btnEditUserInfo').click(function (e) {
+            e.preventDefault();
+            EditApplicationUserInfo();
+        });
+
+        function clearUserInfoForm() {
+            $('#applicationUserId_editUser').val('');
+            $('#applicationUserUsername').val('');
+            $('#applicationUserEmail').val('');
+        }
+    });
+</script>
+

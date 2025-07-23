@@ -1,0 +1,226 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_LayoutAdminDashboard.cshtml";
+}
+
+
+<div class="content">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-icon">
+                <div class="icon-big">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+            </div>
+            <div class="col-stats">
+                <p class="card-category">Cards Number</p>
+                <h4 class="card-title" id="totalCountDisplay">0</h4>
+            </div>
+            <button class="btn-add" onclick="location.href='/Common/Create'">+ Add Business Card</button>
+            <button class="btn-add import-excel" id="openUploadModalBtn">
+                <i class="fa-solid fa-file-import"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <h2>Business Cards</h2>
+
+    <div class="cards-grid" id="cardsGrid">
+        <!-- Cards will be loaded here dynamically -->
+    </div>
+
+    <div class="pagination" id="pagination">
+        <button id="prevBtn">« Prev</button>
+        <!-- Page numbers will be inserted here -->
+        <button id="nextBtn">Next »</button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="uploadModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close-btn" id="closeModalBtn">&times;</span>
+        <h2 style="color: #2f3542;">Upload Business Card Excel</h2>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="file-upload-wrapper">
+                <input type="file" id="fileInput" name="excelFile" accept=".xls,.xlsx" class="file-upload-input" />
+                <label for="fileInput" class="file-upload-label">
+                    <i class="fa-solid fa-file-excel"></i> Choose Excel File
+                </label>
+                <span class="file-upload-filename" id="fileName">No file chosen</span>
+            </div><br>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn-cancel" id="cancelUploadBtn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button type="button" class="btn-save" id="importButton">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="spinnerOverlay" style="display:none;">
+    <div class="spinner"></div>
+</div>
+
+<script>
+        (function () {
+        let currentPage = 1;
+        const pageSize = 3;
+        let totalCount = 0;
+
+        $(document).ready(function () {
+            GetBusinessCardList(currentPage, pageSize);
+
+            $('#prevBtn').off('click').on('click', () => {
+                let newPage = currentPage - 5;
+                if (newPage < 1) newPage = 1;
+                GetBusinessCardList(newPage, pageSize);
+            });
+
+            $('#nextBtn').off('click').on('click', () => {
+                let newPage = currentPage + 5;
+                const totalPages = Math.ceil(totalCount / pageSize);
+                if (newPage > totalPages) newPage = totalPages;
+                GetBusinessCardList(newPage, pageSize);
+            });
+        });
+
+        window.GetBusinessCardList = function (pageNumber, pageSize) {
+            const data = {
+                pageNumber: pageNumber,
+                pageSize: pageSize
+            };
+
+            const success = function (response) {
+                console.log("Full response:", response);
+
+                if (response && response.success && response.result) {
+                    const list = response.result.businessCardModel || response.result;
+
+                    if (!Array.isArray(list)) {
+                        console.warn("Expected an array but got:", list);
+                        $('#cardsGrid').html('<p>No records found.</p>');
+                        return;
+                    }
+
+                    let cardsHtml = '';
+
+                    $.each(list, function (index, item) {
+                        cardsHtml += `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>${item.businessCardName}</h3>
+                            </div>
+                            <p><strong>Title:</strong> ${item.businessCardTitle}</p>
+                            <p><strong>Phone:</strong> ${item.businessCardPhone}</p>
+                            <p><strong>Email:</strong> ${item.businessCardEmail}</p>
+                            <p><strong>Company:</strong> ${item.businessCardCompany}</p>
+                            <p><strong>Website:</strong> <a href="${item.businessCardWebsite}" target="_blank">${item.businessCardWebsite}</a></p>
+                            <p><strong>Address:</strong> ${item.businessCardAddress}</p>
+                            <p><strong>Notes:</strong> ${item.businessCardNotes}</p>
+                            <br/>
+                            <div class="card-header">
+                                <div class="actions">
+                                    <button title="Activate" onclick="ActivateBusinessCard(${item.businessCardId})">
+                                        <i class="fas ${item.isActive ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                                    </button>
+                                    <button class="edit-btn" title="Edit" onclick="redirectToEditBusinessCard(${item.businessCardId})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button title="SoftDelete" class="softdelete-btn" onclick="SoftDeleteBusinessCard(${item.businessCardId})">
+                                        <i class="fa-solid fa-trash-arrow-up"></i>
+                                    </button>
+                                    <button title="HardDelete" class="harddelete-btn" onclick="HardDeleteBusinessCard(${item.businessCardId})">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+
+                    $('#cardsGrid').html(cardsHtml);
+
+                    totalCount = response.result.pagination.totalCount;
+                    $('#totalCountDisplay').text(totalCount);
+                    setupPagination(totalCount, pageSize, pageNumber);
+                } else {
+                    $('#cardsGrid').html('<p>No records found.</p>');
+                }
+            };
+
+            const error = function (response) {
+                console.error("Error loading business cards:", response);
+                $('#cardsGrid').html('<p>Error loading business cards.</p>');
+            };
+
+            const async = true;
+            const methodType = "POST";
+            const Method = '/AdminDashboard/GetBusinessCardList';
+
+            CallActions(Method, data, success, error, async, methodType);
+        };
+
+        function setupPagination(totalCount, pageSize, pageNumber) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const pagination = $('#pagination');
+            const maxPageButtons = 5;
+
+            pagination.find('.page-btn').remove();
+            const currentGroup = Math.floor((pageNumber - 1) / maxPageButtons);
+            const startPage = currentGroup * maxPageButtons + 1;
+            let endPage = startPage + maxPageButtons - 1;
+            if (endPage > totalPages) {
+                endPage = totalPages;
+            }
+
+            $('#prevBtn').prop('disabled', startPage === 1);
+            $('#nextBtn').prop('disabled', endPage === totalPages);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = $('<button>')
+                    .addClass('page-btn')
+                    .text(i)
+                    .toggleClass('active', i === pageNumber)
+                    .click(() => GetBusinessCardList(i, pageSize));
+
+                $('#nextBtn').before(btn);
+            }
+
+            currentPage = pageNumber;
+        }
+
+        $("#openUploadModalBtn").on("click", function () {
+            $("#uploadModal").fadeIn();
+        });
+
+        $("#closeModalBtn, #cancelUploadBtn").on("click", function () {
+            $("#uploadModal").fadeOut();
+            resetFileInput();
+        });
+
+        $("#fileInput").on("change", function () {
+            var fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
+            $("#fileName").text(fileName);
+        });
+
+        $("#importButton").on("click", function () {
+            ImportUsersFromExcel();
+        });
+
+        function resetFileInput() {
+            $("#fileInput").val("");
+            $("#fileName").text("No file chosen");
+        }
+
+    })();
+</script>
+
+<script src="~/jsadmin/admindashboard.js"></script>
+<script src="~/jsshared/softdeletebusinesscard.js"></script>

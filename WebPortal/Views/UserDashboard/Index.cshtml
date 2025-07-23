@@ -1,0 +1,167 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_LayoutUserDashboard.cshtml";
+}
+
+
+<div class="content">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-icon">
+                <div class="icon-big">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+            </div>
+            <div class="col-stats">
+                <p class="card-category">Cards Number</p>
+                <h4 class="card-title" id="totalCountDisplay">0</h4>
+            </div>
+            <button class="btn-add" onclick="location.href='/Common/Create'">+ Add Business Card</button>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <h2>Business Cards</h2>
+
+    <div class="cards-grid" id="cardsGrid">
+        <!-- Cards will be loaded here dynamically -->
+    </div>
+
+    <div class="pagination" id="pagination">
+        <button id="prevBtn">« Prev</button>
+        <!-- Page numbers will be inserted here -->
+        <button id="nextBtn">Next »</button>
+    </div>
+</div>
+
+<script>
+        (function () {
+        let currentPage = 1;
+        const pageSize = 3;
+        let totalCount = 0;
+
+        $(document).ready(function () {
+            GetBusinessCardList(currentPage, pageSize);
+
+            $('#prevBtn').off('click').on('click', () => {
+                let newPage = currentPage - 5;
+                if (newPage < 1) newPage = 1;
+                GetBusinessCardList(newPage, pageSize);
+            });
+
+            $('#nextBtn').off('click').on('click', () => {
+                let newPage = currentPage + 5;
+                const totalPages = Math.ceil(totalCount / pageSize);
+                if (newPage > totalPages) newPage = totalPages;
+                GetBusinessCardList(newPage, pageSize);
+            });
+        });
+
+        window.GetBusinessCardList = function (pageNumber, pageSize) {
+            const data = {
+                pageNumber: pageNumber,
+                pageSize: pageSize
+            };
+
+            const success = function (response) {
+                console.log("Full response:", response);
+
+                if (response && response.success && response.result) {
+                    const list = response.result.businessCardModel || response.result;
+
+                    if (!Array.isArray(list)) {
+                        console.warn("Expected an array but got:", list);
+                        $('#cardsGrid').html('<p>No records found.</p>');
+                        return;
+                    }
+
+                    let cardsHtml = '';
+
+                    $.each(list, function (index, item) {
+                        cardsHtml += `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>${item.businessCardName}</h3>
+                            </div>
+                            <p><strong>Title:</strong> ${item.businessCardTitle}</p>
+                            <p><strong>Phone:</strong> ${item.businessCardPhone}</p>
+                            <p><strong>Email:</strong> ${item.businessCardEmail}</p>
+                            <p><strong>Company:</strong> ${item.businessCardCompany}</p>
+                            <p><strong>Website:</strong> <a href="${item.businessCardWebsite}" target="_blank">${item.businessCardWebsite}</a></p>
+                            <p><strong>Address:</strong> ${item.businessCardAddress}</p>
+                            <p><strong>Notes:</strong> ${item.businessCardNotes}</p>
+                            <br/>
+                            <div class="card-header">
+                                <div class="actions">
+                                    <button class="edit-btn" title="Edit" onclick="redirectToEditBusinessCard(${item.businessCardId})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button title="SoftDelete" class="softdelete-btn" onclick="SoftDeleteBusinessCard(${item.businessCardId})">
+                                        <i class="fa-solid fa-trash-arrow-up"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+
+                    $('#cardsGrid').html(cardsHtml);
+
+                    totalCount = response.result.pagination.totalCount;
+                    $('#totalCountDisplay').text(totalCount);
+                    setupPagination(totalCount, pageSize, pageNumber);
+
+                    currentPage = pageNumber;   
+                } else {
+                    $('#cardsGrid').html('<p>No records found.</p>');
+                    $('#totalCountDisplay').text(0);
+                }
+            };
+
+            const error = function (response) {
+                console.error("Error loading business cards:", response);
+                $('#cardsGrid').html('<p>Error loading business cards.</p>');
+            };
+
+            const async = true;
+            const methodType = "POST";
+            const Method = '/UserDashboard/GetBusinessCardListDependOnCreatedId';
+
+            CallActions(Method, data, success, error, async, methodType);
+        };
+
+        function setupPagination(totalCount, pageSize, pageNumber) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const pagination = $('#pagination');
+            const maxPageButtons = 5;
+
+            pagination.find('.page-btn').remove();
+            const currentGroup = Math.floor((pageNumber - 1) / maxPageButtons);
+            const startPage = currentGroup * maxPageButtons + 1;
+            let endPage = startPage + maxPageButtons - 1;
+            if (endPage > totalPages) {
+                endPage = totalPages;
+            }
+
+            $('#prevBtn').prop('disabled', startPage === 1);
+            $('#nextBtn').prop('disabled', endPage === totalPages);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = $('<button>')
+                    .addClass('page-btn')
+                    .text(i)
+                    .toggleClass('active', i === pageNumber)
+                    .click(() => GetBusinessCardList(i, pageSize));
+
+                $('#nextBtn').before(btn);
+            }
+        }
+
+        window.getCurrentPage = () => currentPage;
+        window.getPageSize = () => pageSize;
+    })();
+
+</script>
+
+<script src="~/jsshared/softdeletebusinesscard.js"></script>

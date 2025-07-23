@@ -1,0 +1,101 @@
+﻿
+@{
+    Layout = ViewBag.LayoutPath as string ?? "~/Views/Shared/_LayoutUserDashboard.cshtml";
+}
+
+
+<div class="content">
+    <h2 style="color: #2f3542; font-weight: 700; margin-bottom: 20px;">Edit Business Card</h2>
+    <form id="businessCardForm">
+        <input type="hidden" id="businessCardIdHidden" />
+        <div class="mb-3">
+            <label for="cardName">Card Name *</label><br />
+            <input type="text" id="cardName" name="cardName" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="cardTitle">Card Title *</label><br />
+            <input type="text" id="cardTitle" name="cardTitle" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="cardPhone">Card Phone *</label><br />
+            <input type="tel" id="cardPhone" name="cardPhone" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="cardEmail">Card Email *</label><br />
+            <input type="email" id="cardEmail" name="cardEmail" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="cardCompany">Card Company *</label><br />
+            <input type="text" id="cardCompany" name="cardCompany" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="cardWebsite">Card Website *</label><br />
+            <input type="url" id="cardWebsite" name="cardWebsite" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="cardAddress">Card Address *</label><br />
+            <textarea id="cardAddress" name="cardAddress" rows="2" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="cardNotes">Card Notes</label><br />
+            <textarea id="cardNotes" name="cardNotes" rows="3"></textarea>
+        </div>
+
+        <div style="margin-top: 10px;">
+            <button id="btnSave" type="submit">Save</button>
+        </div>
+    </form>
+</div>
+
+
+<script>
+    let globalBusinessCardId = null;
+
+    $(document).ready(function () {
+        globalBusinessCardId = GetParameterValues("businessCardId");
+        $("#businessCardIdHidden").val(globalBusinessCardId);
+        console.log("BusinessCardId (from URL):", globalBusinessCardId);
+
+        if (globalBusinessCardId) {
+            let data = { BusinessCardId: globalBusinessCardId };
+
+            let success = function (response) {
+                if (response && response.success) {
+                    let result = response.result;
+                    console.log("Result data:", result);
+
+                    $("#cardName").val(result.businessCardName);
+                    $("#cardTitle").val(result.businessCardTitle);
+                    $("#cardPhone").val(result.businessCardPhone);
+                    $("#cardEmail").val(result.businessCardEmail);
+                    $("#cardCompany").val(result.businessCardCompany);
+                    $("#cardWebsite").val(result.businessCardWebsite);
+                    $("#cardAddress").val(result.businessCardAddress);
+                    $("#cardNotes").val(result.businessCardNotes);
+                }
+            };
+
+            let error = function (response) {
+                console.log(response.xhr, response.status, response.error);
+            };
+
+            CallActions('/Common/Details?businessCardId=' + globalBusinessCardId, data, success, error, true, "GET");
+        }
+
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            EditBusinessCard();
+        });
+    });
+        
+</script>
+
+<script src="~/jscommon/mainmaster.js"></script>
+<script src="~/jsshared/editbusinesscard.js"></script>

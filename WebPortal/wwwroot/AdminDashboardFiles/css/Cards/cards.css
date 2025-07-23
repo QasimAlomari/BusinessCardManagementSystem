@@ -1,0 +1,335 @@
+body {
+    background-color: #f4f6f8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.content {
+    max-width: -webkit-fill-available;
+    margin: 20px auto;
+    background: #f0faf7;
+    padding: 20px 150px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+    .content h2 {
+        font-size: 28px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: #2f3542;
+    }
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.card {
+    background: linear-gradient(to top right, #ffffff, #f9f9f9);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    border-left: 5px solid #2f3542;
+}
+
+    .card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h3 {
+        color: #2f3542;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .card p {
+        font-size: 15px;
+        color: #444;
+        margin: 6px 0;
+    }
+
+    .card a {
+        color: #2f3542;
+        text-decoration: none;
+        word-break: break-word;
+    }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+/* Pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 38px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+    .pagination button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        background-color: #2f3542;
+        color: white;
+        font-size: 15px;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(17, 122, 101, 0.3);
+        transition: background-color 0.3s ease;
+    }
+
+        .pagination button:hover:not(.active):not(:disabled) {
+            background-color: #484f5e;
+        }
+
+        .pagination button.active {
+            background-color: #2f3542;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(10, 68, 52, 0.6);
+            cursor: default;
+        }
+
+        .pagination button:disabled {
+            background-color: #7d818a;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #2f3542;
+    }
+
+    .card-header .actions {
+        display: flex;
+        gap: 6px;
+        margin:auto;
+    }
+
+        .card-header .actions button {
+            background-color: transparent;
+            border: 1px solid #117a65;
+            color: #117a65;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+            /* Main icon hover style */
+            .card-header .actions button:hover i {
+                color: white;
+            }
+
+            /* Optional: also apply white to text on hover if any */
+            .card-header .actions button:hover {
+                background-color: #117a65;
+                color: white;
+            }
+
+        /* Hard Delete button */
+        .card-header .actions .harddelete-btn {
+            border-color: #d9534f;
+            color: #d9534f;
+        }
+
+            .card-header .actions .harddelete-btn i {
+                color: red;
+            }
+
+            .card-header .actions .harddelete-btn:hover {
+                background-color: #d9534f;
+                color: white;
+            }
+
+                .card-header .actions .harddelete-btn:hover i {
+                    color: white;
+                }
+
+        /* Soft Delete button */
+        .card-header .actions .softdelete-btn {
+            border-color: #f4d03f;
+            color: #f4d03f;
+        }
+
+            .card-header .actions .softdelete-btn i {
+                color: #f4d03f;
+            }
+
+            .card-header .actions .softdelete-btn:hover {
+                background-color: #f4d03f;
+                color: white;
+            }
+
+                .card-header .actions .softdelete-btn:hover i {
+                    color: white;
+                }
+
+        /* Edit button */
+        .card-header .actions .edit-btn {
+            border-color: #007bff; /* Blue border */
+            color: #007bff; /* Blue text */
+        }
+
+            .card-header .actions .edit-btn i {
+                color: #007bff; /* Blue icon */
+            }
+
+            .card-header .actions .edit-btn:hover {
+                background-color: #007bff; /* Blue background */
+                color: white; /* White text on hover */
+            }
+
+                .card-header .actions .edit-btn:hover i {
+                    color: white; /* White icon on hover */
+                }
+
+
+/* Card container */
+.card-body {
+    background: white;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Smaller icon */
+.col-icon {
+    flex: 0 0 auto;
+}
+
+.icon-big {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #2f3542;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+.icon-big-user {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #2f3542;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+.col-stats {
+    flex-grow: 1;
+}
+
+.card-category {
+    font-size: 12px;
+    color: #2f3542;
+    margin: 0 0 4px 0;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    color: #343a40;
+}
+
+/* User Details Card */
+.user-details-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin: 0 auto 30px;
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Title inside card (overrides global .content h2) */
+.user-details-card .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2f3542;
+    margin: 0;
+    text-align: left;
+}
+
+/* Edit Button */
+/*.edit-btn-user {
+    background-color: #2f3542;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s, color 0.2s, border 0.2s;
+}*/
+
+    /* Hover effect: white background + dark icon */
+    /*.edit-btn-user:hover {
+        background-color: white;
+        color: #2f3542;
+        border: 1px solid #2f3542;
+    }*/
+
+/* Form Styles */
+.card-form .form-group {
+    margin-bottom: 15px;
+}
+
+.card-form label {
+    display: block;
+    font-weight: 600;
+    color: #2f3542;
+    margin-bottom: 5px;
+}
+
+.card-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    color: #2f3542;
+}
+
